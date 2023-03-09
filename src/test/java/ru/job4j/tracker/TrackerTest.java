@@ -4,7 +4,10 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TrackerTest {
     @Test
@@ -44,4 +47,62 @@ public class TrackerTest {
         tracker.delete(id);
         assertThat(tracker.findById(id), is(nullValue()));
     }
+
+    @Test
+    public void whenDeleteMock() {
+        Tracker tracker = new Tracker();
+        Item item = mock(Item.class);
+
+        when(item.getId()).thenReturn(1);
+
+        tracker.add(item);
+        int id = item.getId();
+        tracker.delete(id);
+        assertThat(tracker.findById(id), is(nullValue()));
+    }
+
+    @Test
+    public void  findByIdMock() {
+        Tracker tracker = new Tracker();
+        Item item = mock(Item.class);
+
+        when(item.getId()).thenReturn(1);
+
+        tracker.add(item);
+        int id = item.getId();
+        assertThat(id, is(1));
+    }
+
+    @Test
+    public void  findByNameMock() {
+        Tracker tracker = new Tracker();
+        Item item = mock(Item.class);
+
+        when(item.getName()).thenReturn("Sergey");
+
+        tracker.add(item);
+        String name = item.getName();
+        assertThat(name, is("Sergey"));
+    }
+
+    @Test
+    public void execute() {
+        Output out = new StubOutput();
+        Tracker tracker = new Tracker();
+        tracker.add(new Item("Replaced item"));
+        String replacedName = "New item name";
+        ReplaceAction rep = new ReplaceAction(out);
+
+        Input input = mock(Input.class);
+
+        when(input.askInt(any(String.class))).thenReturn(1);
+        when(input.askStr(any(String.class))).thenReturn(replacedName);
+
+        rep.execute(input, tracker);
+
+        String ln = System.lineSeparator();
+        assertThat(out.toString(), is("=== Edit item ===" + ln + "Edit item is done." + ln));
+        assertThat(tracker.findAll().get(0).getName(), is(replacedName));
+    }
+
 }
